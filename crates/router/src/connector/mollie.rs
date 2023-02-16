@@ -42,7 +42,6 @@ where
         ];
         let mut api_key = self.get_auth_header(&_req.connector_auth_type)?;
         header.append(&mut api_key);
-        println!("{:?}", header);
         Ok(header)
     }
 }
@@ -114,14 +113,14 @@ impl ConnectorIntegration<api::PSync, types::PaymentsSyncData, types::PaymentsRe
 
     fn get_url(
         &self,
-        _req: &types::PaymentsSyncRouterData,
-        _connectors: &settings::Connectors,
+        req: &types::PaymentsSyncRouterData,
+        connectors: &settings::Connectors,
     ) -> CustomResult<String, errors::ConnectorError> {
         Ok(format!(
             "{}{}{}",
-            self.base_url(_connectors),
+            self.base_url(connectors),
             "payments/",
-            _req.request
+            req.request
                 .connector_transaction_id
                 .get_connector_transaction_id()
                 .change_context(errors::ConnectorError::MissingConnectorTransactionID)?
@@ -159,8 +158,6 @@ impl ConnectorIntegration<api::PSync, types::PaymentsSyncData, types::PaymentsRe
             .response
             .parse_struct("mollie PaymentsResponse")
             .change_context(errors::ConnectorError::ResponseDeserializationFailed)?;
-
-        println!("Handle response >>>>>> {:?}", response);
 
         types::RouterData::try_from(types::ResponseRouterData {
             response,
@@ -285,8 +282,6 @@ impl ConnectorIntegration<api::Authorize, types::PaymentsAuthorizeData, types::P
         let mollie_req = utils::Encode::<mollie::MolliePaymentsRequest>::convert_and_encode(req)
             .change_context(errors::ConnectorError::RequestEncodingFailed)?;
 
-        println!("{:?}", mollie_req);
-
         Ok(Some(mollie_req))
     }
 
@@ -318,8 +313,6 @@ impl ConnectorIntegration<api::Authorize, types::PaymentsAuthorizeData, types::P
             .response
             .parse_struct("PaymentIntentResponse")
             .change_context(errors::ConnectorError::ResponseDeserializationFailed)?;
-
-        println!("Handle response >>>>>> {:?}", response);
 
         logger::debug!(molliepayments_create_response=?response);
         types::ResponseRouterData {

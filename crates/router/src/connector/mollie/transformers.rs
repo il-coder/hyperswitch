@@ -14,7 +14,6 @@ pub struct Amount {
     pub value: String,
 }
 
-//TODO: Fill the struct with respective fields
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
 pub struct MolliePaymentsRequest {
     pub amount: Amount,
@@ -31,27 +30,23 @@ pub fn default_redirect_url() -> Option<String> {
 impl TryFrom<&types::PaymentsAuthorizeRouterData> for MolliePaymentsRequest {
     type Error = error_stack::Report<errors::ConnectorError>;
     fn try_from(_item: &types::PaymentsAuthorizeRouterData) -> Result<Self, Self::Error> {
-        println!("Piyush : Convert Router to MollieRequest");
         let mut req = Self {
             amount: Amount {
                 currency: _item.request.currency.to_string(),
                 value: format!("{}.00", _item.request.amount.to_string()),
             },
             description: _item.description.as_ref().map(|data| format!("{data}")),
-            redirect_url: _item.return_url.as_ref().map(|data| format!("{data}")), // redirect_url: Some(String::from("https://hyperswitch.io"))
+            redirect_url: _item.return_url.as_ref().map(|data| format!("{data}")),
         };
 
         if req.redirect_url == None {
             req.redirect_url = Some(String::from("https://hyperswitch.io"));
         }
 
-        println!("{:?}", req);
         Ok(req)
     }
 }
 
-//TODO: Fill the struct with respective fields
-// Auth Struct
 pub struct MollieAuthType {
     pub(super) api_key: String,
 }
@@ -68,8 +63,7 @@ impl TryFrom<&types::ConnectorAuthType> for MollieAuthType {
         }
     }
 }
-// PaymentsResponse
-//TODO: Append the remaining status flags
+
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum MolliePaymentStatus {
@@ -101,7 +95,7 @@ impl From<MolliePaymentStatus> for enums::AttemptStatus {
 pub struct URL {
     pub href: String,
     #[serde(rename = "type")]
-    pub _type: String,
+    pub url_type: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
@@ -117,26 +111,22 @@ pub struct Link {
 pub fn get_default_url() -> URL {
     URL {
         href: String::from(""),
-        _type: String::from(""),
+        url_type: String::from(""),
     }
 }
 
-//TODO: Fill the struct with respective fields
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
 pub struct MolliePaymentsResponse {
     resource: String,
     id: String,
     mode: String,
-    #[serde(rename = "createdAt")]
     created_at: String,
     status: MolliePaymentStatus,
     amount: Amount,
     description: String,
-    #[serde(rename = "redirectUrl")]
     redirect_url: String,
     method: String,
-    // metadata: String,
-    #[serde(rename = "profileId")]
     profile_id: String,
     #[serde(rename = "_links")]
     links: Link,
@@ -150,8 +140,6 @@ impl<F, T>
     fn try_from(
         item: types::ResponseRouterData<F, MolliePaymentsResponse, T, types::PaymentsResponseData>,
     ) -> Result<Self, Self::Error> {
-        println!("Piyush : Convert MollieResponse to RouterResponse");
-
         let to_be_redirected = item.response.links.checkout.href != "";
 
         if to_be_redirected {
@@ -174,18 +162,6 @@ impl<F, T>
                         .map(|(k, v)| (k.to_string(), v.to_string())),
                 ),
             });
-
-            // Ok(Self {
-            //     status: enums::AttemptStatus::from(item.response.status),
-            //     response: Ok(types::PaymentsResponseData::TransactionResponse {
-            //         resource_id: types::ResponseId::ConnectorTransactionId(item.response.id),
-            //         redirection_data: None,
-            //         redirect: false,
-            //         mandate_reference: None,
-            //         connector_metadata: None,
-            //     }),
-            //     ..item.data
-            // })
 
             Ok(Self {
                 status: enums::AttemptStatus::from(item.response.status),

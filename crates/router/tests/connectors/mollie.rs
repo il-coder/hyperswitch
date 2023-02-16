@@ -180,21 +180,6 @@ async fn should_make_payment() {
     );
 }
 
-// // Creates a payment using the automatic capture flow (Non 3DS).
-// #[actix_web::test]
-// async fn should_return_valid_url() {
-//     let authorize_response = CONNECTOR.make_payment(None, None).await.unwrap();
-//     println!("response for valid url: {:?}", authorize_response);
-//     let txn_response = match authorize_response.response {
-//         Ok(val) => val,
-//         Err(_) => todo!()
-//     };
-//     println!("{:?}", txn_response);
-//     println!("{:?}", txn_response);
-//     // assert_eq!(, "abc");
-//     assert_eq!(authorize_response.status, enums::AttemptStatus::Charged);
-// }
-
 // Synchronizes a payment using the automatic capture flow (Non 3DS).
 #[actix_web::test]
 async fn should_sync_auto_captured_payment() {
