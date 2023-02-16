@@ -176,6 +176,7 @@ where
                                 }
                             };
                             logger::debug!(?response);
+
                             Ok(response)
                         }
                         Err(error) => Err(error
